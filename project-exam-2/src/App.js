@@ -1,73 +1,137 @@
 import React, { useState } from 'react';
 import './App.css';
 
+
 function App() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
-  const [bio, setBio] = useState('');
   const [error, setError] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
 
   const handleLogin = async () => {
-    // Login logic remains the same
+    try {
+      // Reset error state
+      setError(null);
+  
+      // Login data
+      const loginData = {
+        email,
+        password,
+      };
+  
+      // Login request
+      const response = await fetch('https://v2.api.noroff.dev/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loginData),
+      });
+  
+      if (response.ok) {
+        // Login successful
+        const responseData = await response.json();
+        console.log('Login successful:', responseData);
+  
+        // Store JWT token securely (e.g., in local storage)
+        localStorage.setItem('token', responseData.data.accessToken);
+  
+        // Proceed with further actions (e.g., navigate to dashboard)
+      } else {
+        // Login failed
+        const errorData = await response.json();
+        console.error('Login failed:', errorData);
+        setError('Login failed. Please check your credentials and try again.');
+      }
+    } catch (error) {
+      console.error('Error logging in:', error);
+      setError('An error occurred. Please try again later.');
+    }
   };
 
   const handleRegister = async () => {
     try {
       // Reset error state
       setError(null);
-
+  
       // Validation
       if (!email.match(/^[a-zA-Z0-9._%+-]+@stud\.noroff\.no$/)) {
         setError('Please enter a valid stud.noroff.no email address.');
         return;
       }
-
+  
       if (password.length < 8) {
         setError('Password must be at least 8 characters.');
         return;
       }
-
+  
       if (!username.match(/^[a-zA-Z0-9_]+$/)) {
         setError('Username must not contain punctuation symbols apart from underscore (_).');
         return;
       }
-
-      if (bio.length > 160) {
-        setError('Bio must be less than 160 characters.');
-        return;
-      }
-
-      // Registration
+  
+      // Registration data
+      const registrationData = {
+        name: username,
+        email,
+        password,
+        bio: "", 
+        avatar: {
+          url: "", 
+          alt: "" 
+        },
+        banner: {
+          url: "",
+          alt: "" 
+        },
+        venueManager: true
+      };
+        
+      // Registration request
       const response = await fetch('https://v2.api.noroff.dev/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password, username, bio }),
+        body: JSON.stringify(registrationData),
       });
-
+  
       if (response.ok) {
-        // Registration successful, create API key
-        const registrationData = await response.json();
+        // Registration successful
+        const responseData = await response.json();
+        console.log('Registration successful:', responseData);
+  
+        // Create API Key
         const apiKeyResponse = await fetch('https://v2.api.noroff.dev/auth/create-api-key', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${registrationData.token}`,
+            'Authorization': `Bearer ${responseData.token}`, // Use the token from registration response
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({}),
         });
-
+  
         if (apiKeyResponse.ok) {
-          // API key created successfully, proceed with login
-          handleLogin();
+          // API Key created successfully
+          const apiKeyData = await apiKeyResponse.json();
+          console.log('API Key created:', apiKeyData);
+  
+          // Store JWT token and API key securely (e.g., in local storage)
+          localStorage.setItem('token', responseData.token);
+          localStorage.setItem('apiKey', apiKeyData.key);
+  
+          window.location.reload();
         } else {
-          setError('Failed to create API key.');
+          // Failed to create API Key
+          console.error('Failed to create API key.');
+          setError('Registration failed. Please try again.');
         }
       } else {
+        // Registration failed
+        const errorData = await response.json();
+        console.error('Registration failed:', errorData);
         setError('Registration failed. Please try again.');
       }
     } catch (error) {
@@ -75,6 +139,7 @@ function App() {
       setError('An error occurred. Please try again later.');
     }
   };
+  
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -90,6 +155,8 @@ function App() {
       <nav className="navbar navbar-expand-lg bg-primary" data-bs-theme="dark">
         <div className="container-fluid">
           <span className="navbar-brand">Holidaze</span>
+          <button type="button" className="btn btn-secondary">Home</button>
+          <button type="button" className="btn btn-secondary">Profile</button>
         </div>
       </nav>
       <header className="App-header">
@@ -126,14 +193,6 @@ function App() {
                 placeholder="Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-              />
-            </div>
-            <div className="mb-3">
-              <textarea
-                className="form-control"
-                placeholder="Bio (optional)"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
               />
             </div>
             <button className="btn btn-primary btn-sm" onClick={handleRegister}>Sign Up</button>
