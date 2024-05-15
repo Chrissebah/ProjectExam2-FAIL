@@ -77,9 +77,10 @@ function App() {
         <nav className="navbar navbar-expand-lg bg-primary" data-bs-theme="dark">
           <div className="container-fluid">
             <span className="navbar-brand">Holidaze</span>
-            <Link to="/content" className="btn btn-secondary">Home</Link>
-            <Link to="/profile" className="btn btn-secondary">Profile</Link>
-          </div>
+            </div>
+            <Link to="/content" className="btn btn-secondary me-2">Home</Link>
+            <Link to="/profile" className="btn btn-secondary me-2">Profile</Link>
+      
         </nav>
         <header className="App-header">
         <Routes>
@@ -87,6 +88,7 @@ function App() {
                 isLoggedIn ? (
                   <>
                     <h1>Welcome, {email}!</h1>
+                    <Link to="/content" className="btn btn-primary btn-sm mr-2 btn-margin">Venues</Link>
                     <button className="btn btn-primary btn-sm mr-2" onClick={handleLogout}>Logout</button>
                   </>
                 ) : isSignUp ? (

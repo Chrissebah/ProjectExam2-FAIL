@@ -67,3 +67,17 @@ h1 {
   border-radius: 4px;
   cursor: pointer;
 }
+
+.btn-margin {
+  margin-right: 10px;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar-brand {
+  margin-right: auto;
+}
